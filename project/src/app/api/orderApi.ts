@@ -1,10 +1,10 @@
-﻿import { projectId, publicAnonKey } from "/utils/supabase/info";
-import type { OrderApiRecord } from "../types/order";
+﻿import { projectId, publicAnonKey } from "@/app/config/supabase";
+import type { OrderApiRecord } from "@/app/types/order";
 
 const API_URL = `https://${projectId}.supabase.co/functions/v1/server`;
 
-// Order list data is the primary dataset for this prototype, so successful
-// responses are logged for monitoring exactly as requested.
+// Order requests are logged with the orderApi prefix because the user asked to
+// monitor this flow with that exact label instead of page-level wording.
 export async function fetchOrderList(): Promise<OrderApiRecord[]> {
   try {
     const response = await fetch(`${API_URL}/orders`, {
@@ -51,75 +51,4 @@ export async function fetchOrderById(id: string): Promise<OrderApiRecord> {
   }
 }
 
-export async function createOrder(data: unknown) {
-  try {
-    const response = await fetch(`${API_URL}/orders`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${publicAnonKey}`,
-      },
-      body: JSON.stringify(data),
-    });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Failed to create order: ${errorData.message ?? response.statusText}`);
-    }
-
-    const result = await response.json();
-    console.log("[orderApi] Created order:", result);
-    return result;
-  } catch (error) {
-    console.error("[orderApi] Error creating order:", error);
-    throw error;
-  }
-}
-
-export async function updateOrder(id: string, data: unknown) {
-  try {
-    const response = await fetch(`${API_URL}/orders/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${publicAnonKey}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Failed to update order: ${errorData.message ?? response.statusText}`);
-    }
-
-    const result = await response.json();
-    console.log("[orderApi] Updated order:", result);
-    return result;
-  } catch (error) {
-    console.error("[orderApi] Error updating order:", error);
-    throw error;
-  }
-}
-
-export async function deleteOrder(id: string) {
-  try {
-    const response = await fetch(`${API_URL}/orders/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${publicAnonKey}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to delete order: ${response.status} ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    console.log("[orderApi] Deleted order:", result);
-    return result;
-  } catch (error) {
-    console.error("[orderApi] Error deleting order:", error);
-    throw error;
-  }
-}

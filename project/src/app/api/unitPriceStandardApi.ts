@@ -1,4 +1,4 @@
-﻿import { projectId, publicAnonKey } from "/utils/supabase/info";
+﻿import { projectId, publicAnonKey } from "@/app/config/supabase";
 
 const API_URL = `https://${projectId}.supabase.co/functions/v1/server`;
 
@@ -22,118 +22,21 @@ export interface UnitPriceStandardRecord {
 }
 
 export async function fetchUnitPriceStandardList(): Promise<UnitPriceStandardRecord[]> {
-  try {
-    const response = await fetch(`${API_URL}/unit-price-standard`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${publicAnonKey}`,
-      },
-    });
+  const response = await fetch(`${API_URL}/unit-price-standard`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${publicAnonKey}`,
+    },
+  });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch unit price standard list: ${response.status} ${response.statusText}`);
-    }
-
-    const data = (await response.json()) as UnitPriceStandardRecord[];
-    console.log("[unitPriceStandardApi] Received unit price list:", data);
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error("[unitPriceStandardApi] Error fetching unit price standard list:", error);
-    throw error;
+  if (!response.ok) {
+    throw new Error(`Failed to fetch unit price standard list: ${response.status} ${response.statusText}`);
   }
+
+  const data = (await response.json()) as UnitPriceStandardRecord[];
+  console.log("[unitPriceStandardApi] Received unit price list:", data);
+  return Array.isArray(data) ? data : [];
 }
 
-export async function fetchUnitPriceStandardById(id: string): Promise<UnitPriceStandardRecord> {
-  try {
-    const response = await fetch(`${API_URL}/unit-price-standard/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${publicAnonKey}`,
-      },
-    });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch unit price standard: ${response.status} ${response.statusText}`);
-    }
-
-    const data = (await response.json()) as UnitPriceStandardRecord;
-    console.log("[unitPriceStandardApi] Received unit price detail:", data);
-    return data;
-  } catch (error) {
-    console.error("[unitPriceStandardApi] Error fetching unit price standard detail:", error);
-    throw error;
-  }
-}
-
-export async function createUnitPriceStandard(data: UnitPriceStandardRecord) {
-  try {
-    const response = await fetch(`${API_URL}/unit-price-standard`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${publicAnonKey}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to create unit price standard: ${response.status} ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    console.log("[unitPriceStandardApi] Created unit price:", result);
-    return result;
-  } catch (error) {
-    console.error("[unitPriceStandardApi] Error creating unit price standard:", error);
-    throw error;
-  }
-}
-
-export async function updateUnitPriceStandard(id: string, data: UnitPriceStandardRecord) {
-  try {
-    const response = await fetch(`${API_URL}/unit-price-standard/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${publicAnonKey}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to update unit price standard: ${response.status} ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    console.log("[unitPriceStandardApi] Updated unit price:", result);
-    return result;
-  } catch (error) {
-    console.error("[unitPriceStandardApi] Error updating unit price standard:", error);
-    throw error;
-  }
-}
-
-export async function deleteUnitPriceStandard(id: string) {
-  try {
-    const response = await fetch(`${API_URL}/unit-price-standard/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${publicAnonKey}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to delete unit price standard: ${response.status} ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    console.log("[unitPriceStandardApi] Deleted unit price:", result);
-    return result;
-  } catch (error) {
-    console.error("[unitPriceStandardApi] Error deleting unit price standard:", error);
-    throw error;
-  }
-}

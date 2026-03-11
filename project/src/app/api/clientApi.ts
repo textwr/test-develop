@@ -1,4 +1,4 @@
-﻿import { projectId, publicAnonKey } from "/utils/supabase/info";
+﻿import { projectId, publicAnonKey } from "@/app/config/supabase";
 
 const API_URL = `https://${projectId}.supabase.co/functions/v1/server`;
 
@@ -22,91 +22,19 @@ export interface ClientInfo {
 }
 
 export async function fetchClientList(): Promise<ClientInfo[]> {
-  try {
-    const response = await fetch(`${API_URL}/clients`, {
-      headers: {
-        Authorization: `Bearer ${publicAnonKey}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch client list: ${response.status} ${response.statusText}`);
-    }
-
-    const data = (await response.json()) as ClientInfo[];
-    console.log("[clientApi] Received client list:", data);
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error("[clientApi] Error fetching client list:", error);
-    throw error;
-  }
-}
-
-export async function fetchClientById(id: string): Promise<ClientInfo> {
-  const response = await fetch(`${API_URL}/clients/${id}`, {
-    headers: {
-      Authorization: `Bearer ${publicAnonKey}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch client: ${response.status} ${response.statusText}`);
-  }
-
-  const data = (await response.json()) as ClientInfo;
-  console.log("[clientApi] Received client detail:", data);
-  return data;
-}
-
-export async function createClient(data: ClientInfo): Promise<ClientInfo> {
   const response = await fetch(`${API_URL}/clients`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${publicAnonKey}`,
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to create client: ${response.status} ${response.statusText}`);
-  }
-
-  const result = (await response.json()) as ClientInfo;
-  console.log("[clientApi] Created client:", result);
-  return result;
-}
-
-export async function updateClient(id: string, data: ClientInfo): Promise<ClientInfo> {
-  const response = await fetch(`${API_URL}/clients/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${publicAnonKey}`,
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to update client: ${response.status} ${response.statusText}`);
-  }
-
-  const result = (await response.json()) as ClientInfo;
-  console.log("[clientApi] Updated client:", result);
-  return result;
-}
-
-export async function deleteClient(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/clients/${id}`, {
-    method: "DELETE",
     headers: {
       Authorization: `Bearer ${publicAnonKey}`,
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to delete client: ${response.status} ${response.statusText}`);
+    throw new Error(`Failed to fetch client list: ${response.status} ${response.statusText}`);
   }
 
-  console.log("[clientApi] Deleted client:", { id });
+  const data = (await response.json()) as ClientInfo[];
+  console.log("[clientApi] Received client list:", data);
+  return Array.isArray(data) ? data : [];
 }
+
+

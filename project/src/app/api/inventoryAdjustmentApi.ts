@@ -1,4 +1,4 @@
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+﻿import { projectId, publicAnonKey } from "@/app/config/supabase";
 
 const API_BASE = `https://${projectId}.supabase.co/functions/v1/server`;
 
@@ -118,3 +118,5 @@ export async function deleteInventoryAdjustment(id: string) {
     throw error;
   }
 }
+
+

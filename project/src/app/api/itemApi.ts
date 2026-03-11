@@ -1,4 +1,4 @@
-﻿import { projectId, publicAnonKey } from "/utils/supabase/info";
+﻿import { projectId, publicAnonKey } from "@/app/config/supabase";
 
 const API_URL = `https://${projectId}.supabase.co/functions/v1/server`;
 
@@ -42,71 +42,4 @@ export async function fetchItemList(): Promise<ItemInfo[]> {
   return Array.isArray(data) ? data : [];
 }
 
-export async function fetchItemById(id: string): Promise<ItemInfo> {
-  const response = await fetch(`${API_URL}/items/${id}`, {
-    headers: {
-      Authorization: `Bearer ${publicAnonKey}`,
-    },
-  });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch item: ${response.status} ${response.statusText}`);
-  }
-
-  const data = (await response.json()) as ItemInfo;
-  console.log("[itemApi] Received item detail:", data);
-  return data;
-}
-
-export async function createItem(data: ItemInfo): Promise<ItemInfo> {
-  const response = await fetch(`${API_URL}/items`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${publicAnonKey}`,
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to create item: ${response.status} ${response.statusText}`);
-  }
-
-  const result = (await response.json()) as ItemInfo;
-  console.log("[itemApi] Created item:", result);
-  return result;
-}
-
-export async function updateItem(id: string, data: ItemInfo): Promise<ItemInfo> {
-  const response = await fetch(`${API_URL}/items/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${publicAnonKey}`,
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to update item: ${response.status} ${response.statusText}`);
-  }
-
-  const result = (await response.json()) as ItemInfo;
-  console.log("[itemApi] Updated item:", result);
-  return result;
-}
-
-export async function deleteItem(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/items/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${publicAnonKey}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to delete item: ${response.status} ${response.statusText}`);
-  }
-
-  console.log("[itemApi] Deleted item:", { id });
-}

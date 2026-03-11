@@ -1,4 +1,4 @@
-import { projectId, publicAnonKey } from "/utils/supabase/info";
+﻿import { projectId, publicAnonKey } from "@/app/config/supabase";
 
 const BASE_URL = `https://${projectId}.supabase.co/functions/v1/server`;
 
@@ -216,3 +216,5 @@ export async function fetchWorkCompletionByLine(line: string): Promise<WorkCompl
     throw error;
   }
 }
+
+

@@ -1,4 +1,4 @@
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
+﻿import { projectId, publicAnonKey } from "@/app/config/supabase";
 
 const API_URL = `https://${projectId}.supabase.co/functions/v1/server`;
 
@@ -113,3 +113,5 @@ export async function fetchProductLocationByItemCode(품번: string): Promise<Pr
   
   return response.json();
 }
+
+

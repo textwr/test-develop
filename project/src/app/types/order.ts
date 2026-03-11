@@ -1,5 +1,5 @@
-﻿// Types in this file represent the order API contract and the flat row model
-// that the reusable table component consumes on the page.
+﻿// These types describe both the raw order API payload and the view models used
+// by the list/detail pages after enrichment and calculations are applied.
 export type OrderApiLineItem = {
   품번?: string;
   품명?: string;
@@ -28,13 +28,8 @@ export type OrderApiRecord = {
   수정일시?: string;
 };
 
-export type OrderTableRow = {
+export type OrderItemView = {
   id: string;
-  orderId: string;
-  orderNumber: string;
-  orderDate: string;
-  clientName: string;
-  clientNumber: string;
   itemCode: string;
   itemName: string;
   gsm: number | null;
@@ -46,7 +41,27 @@ export type OrderTableRow = {
   weightGram: number | null;
   unitPrice: number | null;
   amountWon: number | null;
+};
+
+export type OrderListRow = OrderItemView & {
+  orderId: string;
+  orderNumber: string;
+  orderDate: string;
+  clientName: string;
+  clientNumber: string;
   deliveryRequestDate: string;
   deliveryPlace: string;
   note: string;
+};
+
+export type OrderDetailView = {
+  orderId: string;
+  orderNumber: string;
+  orderDate: string;
+  clientName: string;
+  clientNumber: string;
+  deliveryRequestDate: string;
+  deliveryPlace: string;
+  note: string;
+  items: OrderItemView[];
 };

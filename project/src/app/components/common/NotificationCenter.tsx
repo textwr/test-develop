@@ -1,3 +1,5 @@
+﻿import { AppButton } from "@/app/components/common/AppButton";
+
 export type NotificationItem = {
   id: string;
   message: string;
@@ -16,25 +18,30 @@ export function NotificationCenter({ notifications, onDismiss }: NotificationCen
   }
 
   return (
-    <div
-      aria-live="assertive"
-      className="notification-center"
-    >
+    <div className="pointer-events-none fixed right-6 top-6 z-50 grid w-full max-w-sm gap-3">
       {notifications.map((notification) => (
         <article
-          className={["notification-toast", `notification-toast--${notification.variant}`].join(" ")}
+          className={[
+            "pointer-events-auto flex items-start justify-between gap-3 rounded-2xl border px-4 py-3 shadow-lg shadow-slate-200/60",
+            notification.variant === "info" && "border-blue-100 bg-blue-50 text-blue-700",
+            notification.variant === "warning" && "border-amber-200 bg-amber-50 text-amber-700",
+            notification.variant === "error" && "border-rose-200 bg-rose-50 text-rose-700",
+          ]
+            .filter(Boolean)
+            .join(" ")}
           key={notification.id}
           role="alert"
         >
-          <div className="notification-toast__body">
-            <strong className="notification-toast__title">{notification.title}</strong>
-            <p className="notification-toast__message">{notification.message}</p>
+          <div className="grid gap-1">
+            <strong className="text-sm font-semibold">{notification.title}</strong>
+            <p className="text-sm leading-5">{notification.message}</p>
           </div>
-          <button
+          <AppButton
             aria-label="알림 닫기"
-            className="notification-toast__close"
+            className="!min-h-8 !rounded-full !px-2"
             onClick={() => onDismiss(notification.id)}
-            type="button"
+            size="sm"
+            variant="ghost"
           >
             <svg
               fill="none"
@@ -50,7 +57,7 @@ export function NotificationCenter({ notifications, onDismiss }: NotificationCen
                 strokeWidth="1.8"
               />
             </svg>
-          </button>
+          </AppButton>
         </article>
       ))}
     </div>

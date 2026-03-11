@@ -1,25 +1,29 @@
 ﻿import { useState } from "react";
 import type { InputHTMLAttributes } from "react";
+import { cn } from "@/app/utils/cn";
 
 type PasswordFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
   label: string;
 };
 
-export function PasswordField({ className = "", label, ...props }: PasswordFieldProps) {
+export function PasswordField({ className, label, ...props }: PasswordFieldProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   return (
-    <label className="app-field">
-      <span className="app-field__label">{label}</span>
-      <span className="password-field">
+    <label className="grid gap-2">
+      <span className="text-[14px] font-medium text-[#475569]">{label}</span>
+      <span className="relative">
         <input
-          className={["app-field__input", "password-field__input", className].filter(Boolean).join(" ")}
+          className={cn(
+            "min-h-[48px] w-full rounded-[10px] border border-[#d4d9e2] bg-white px-4 pr-12 text-[16px] text-[#334155] outline-none transition focus:border-[#6175df] focus:ring-2 focus:ring-[#dce2ff]",
+            className,
+          )}
           type={isVisible ? "text" : "password"}
           {...props}
         />
         <button
           aria-label={isVisible ? "비밀번호 숨기기" : "비밀번호 보기"}
-          className="password-field__toggle"
+          className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-[#8b95a7] transition hover:bg-[#f3f4f6]"
           onClick={() => setIsVisible((current) => !current)}
           type="button"
         >
