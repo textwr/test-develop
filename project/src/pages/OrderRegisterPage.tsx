@@ -121,7 +121,7 @@ function createRegisterItem(item: ItemInfo, clientNumber: string, unitPrices: Un
     amountWon: null,
     gsm: parseNumber(item.평량),
     id: item.id ?? `${item.품번 ?? item.품명 ?? "item"}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    isSelected: false,
+    isSelected: true,
     itemCode: item.품번?.trim() ?? "-",
     itemName: item.품명?.trim() ?? "-",
     length: parseNumber(item.길이),
@@ -417,7 +417,6 @@ export function OrderRegisterPage({ onBack, onComplete }: OrderRegisterPageProps
   };
 
   const handleSave = async () => {
-    const invalidItems = items.filter((item) => item.orderQuantityMeter === null || item.orderQuantityMeter <= 0);
 
     if (!form.clientName.trim()) {
       pushNotification({
@@ -437,16 +436,29 @@ export function OrderRegisterPage({ onBack, onComplete }: OrderRegisterPageProps
       return;
     }
 
-    if (invalidItems.length > 0) {
+    const selectedItems = items.filter((item) => item.isSelected);
+
+    if (selectedItems.length === 0) {
       pushNotification({
         title: "필수값 확인",
-        message: "모든 수주품목의 수주량(m)을 입력해주세요.",
+        message: "저장할 품목을 선택해주세요.",
         variant: "warning",
       });
       return;
     }
 
-    const payload = buildSavePayload(form, items);
+    const invalidItems = selectedItems.filter((item) => item.orderQuantityMeter === null || item.orderQuantityMeter <= 0);
+
+    if (invalidItems.length > 0) {
+      pushNotification({
+        title: "필수값 확인",
+        message: "선택한 수주품목의 수주량(m)을 입력해주세요.",
+        variant: "warning",
+      });
+      return;
+    }
+
+    const payload = buildSavePayload(form, selectedItems);
     console.log("[orderApi] 수주 등록 저장 직전 payload:", payload);
 
     try {
