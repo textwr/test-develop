@@ -1,10 +1,10 @@
 ﻿import { projectId, publicAnonKey } from "@/app/config/supabase";
-import type { OrderApiRecord } from "@/app/types/order";
+import type { OrderApiRecord, OrderCreatePayload } from "@/app/types/order";
 
 const API_URL = `https://${projectId}.supabase.co/functions/v1/server`;
 
-// Order requests are logged with the orderApi prefix because the user asked to
-// monitor this flow with that exact label instead of page-level wording.
+// 수주 요청 로그는 화면 단위가 아니라 orderApi 접두어로 통일해
+// 같은 흐름의 요청을 한눈에 추적할 수 있게 맞춘다.
 export async function fetchOrderList(): Promise<OrderApiRecord[]> {
   try {
     const response = await fetch(`${API_URL}/orders`, {
@@ -20,7 +20,6 @@ export async function fetchOrderList(): Promise<OrderApiRecord[]> {
     }
 
     const data = (await response.json()) as OrderApiRecord[];
-    console.log("[orderApi] Received order list:", data);
     return data;
   } catch (error) {
     console.error("[orderApi] Error fetching order list:", error);
@@ -43,7 +42,6 @@ export async function fetchOrderById(id: string): Promise<OrderApiRecord> {
     }
 
     const data = (await response.json()) as OrderApiRecord;
-    console.log("[orderApi] Received order detail:", data);
     return data;
   } catch (error) {
     console.error("[orderApi] Error fetching order detail:", error);
@@ -51,4 +49,29 @@ export async function fetchOrderById(id: string): Promise<OrderApiRecord> {
   }
 }
 
+export async function createOrder(payload: OrderCreatePayload): Promise<OrderApiRecord | null> {
+  try {
+    console.log("[orderApi] 수주 등록 요청 데이터:", payload);
 
+    const response = await fetch(`${API_URL}/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${publicAnonKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create order: ${response.status} ${response.statusText}`);
+    }
+
+    const rawText = await response.text();
+    const data = rawText ? (JSON.parse(rawText) as OrderApiRecord) : null;
+    console.log("[orderApi] 수주 등록 응답 데이터:", data);
+    return data;
+  } catch (error) {
+    console.error("[orderApi] Error creating order:", error);
+    throw error;
+  }
+}

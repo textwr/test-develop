@@ -7,7 +7,9 @@ import logoImage from "@/assets/logo.png";
 import { LoginPage } from "@/pages/LoginPage";
 import { OrderDetailPage } from "@/pages/OrderDetailPage";
 import { OrderListPage } from "@/pages/OrderListPage";
+import { OrderRegisterPage } from "@/pages/OrderRegisterPage";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
+import type { NotificationItem } from "@/app/components/common/NotificationCenter";
 
 type LoginCredentials = {
   userId: string;
@@ -16,6 +18,7 @@ type LoginCredentials = {
 
 type CurrentView =
   | { type: "order-list" }
+  | { type: "order-register" }
   | { orderId: string; type: "order-detail" }
   | { type: "placeholder" };
 
@@ -29,6 +32,7 @@ function App() {
   const [activeGroup, setActiveGroup] = useState<MainCategory>(defaultGroup.label);
   const [activeSubCategory, setActiveSubCategory] = useState<SubCategory>(defaultSubCategory);
   const [currentView, setCurrentView] = useState<CurrentView>({ type: "order-list" });
+  const [listFlashNotification, setListFlashNotification] = useState<Omit<NotificationItem, "id"> | null>(null);
 
   // Every view transition uses the same guard so the console log stays reliable
   // for monitoring and the prototype keeps a single navigation source of truth.
@@ -111,11 +115,26 @@ function App() {
     setCurrentView({ orderId, type: "order-detail" });
   };
 
+  const handleOpenOrderRegister = () => {
+    if (!confirmLoginForNavigation("수주등록")) {
+      return;
+    }
+
+    setActiveGroup("영업관리");
+    setActiveSubCategory("수주정보");
+    setCurrentView({ type: "order-register" });
+  };
+
   const handleBackToList = () => {
     if (!confirmLoginForNavigation("수주정보")) {
       return;
     }
 
+    setCurrentView({ type: "order-list" });
+  };
+
+  const handleOrderRegisterComplete = (notification: Omit<NotificationItem, "id">) => {
+    setListFlashNotification(notification);
     setCurrentView({ type: "order-list" });
   };
 
@@ -140,7 +159,20 @@ function App() {
       onToggleGroup={handleToggleGroup}
       onToggleSidebar={handleToggleSidebar}
     >
-      {currentView.type === "order-list" ? <OrderListPage onSelectOrder={handleSelectOrder} /> : null}
+      {currentView.type === "order-list" ? (
+        <OrderListPage
+          flashNotification={listFlashNotification}
+          onCreateOrder={handleOpenOrderRegister}
+          onFlashNotificationShown={() => setListFlashNotification(null)}
+          onSelectOrder={handleSelectOrder}
+        />
+      ) : null}
+      {currentView.type === "order-register" ? (
+        <OrderRegisterPage
+          onBack={handleBackToList}
+          onComplete={handleOrderRegisterComplete}
+        />
+      ) : null}
       {currentView.type === "order-detail" ? (
         <OrderDetailPage
           onBack={handleBackToList}

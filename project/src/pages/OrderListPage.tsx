@@ -9,7 +9,6 @@ import { LoadingOverlay } from "@/app/components/common/LoadingOverlay";
 import { NotificationCenter, type NotificationItem } from "@/app/components/common/NotificationCenter";
 import { PageHeader } from "@/app/components/common/PageHeader";
 import { StatusBanner } from "@/app/components/common/StatusBanner";
-import { mockOrders } from "@/app/data/mockOrders";
 import type { OrderListRow } from "@/app/types/order";
 import { buildOrderListRows, formatDate, formatFlexibleNumber, formatNumber } from "@/app/utils/orderUtils";
 
@@ -35,11 +34,19 @@ const orderColumns: DataColumn<OrderListRow>[] = [
 ];
 
 type OrderListPageProps = {
+  flashNotification?: Omit<NotificationItem, "id"> | null;
+  onCreateOrder: () => void;
+  onFlashNotificationShown?: () => void;
   onSelectOrder: (orderId: string) => void;
 };
 
-export function OrderListPage({ onSelectOrder }: OrderListPageProps) {
-  const [rows, setRows] = useState<OrderListRow[]>(mockOrders);
+export function OrderListPage({
+  flashNotification,
+  onCreateOrder,
+  onFlashNotificationShown,
+  onSelectOrder,
+}: OrderListPageProps) {
+  const [rows, setRows] = useState<OrderListRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
@@ -57,11 +64,21 @@ export function OrderListPage({ onSelectOrder }: OrderListPageProps) {
   };
 
   useEffect(() => {
+    if (!flashNotification) {
+      return;
+    }
+
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setNotifications((current) => [...current, { id, ...flashNotification }]);
+    onFlashNotificationShown?.();
+  }, [flashNotification, onFlashNotificationShown]);
+
+  useEffect(() => {
     let isMounted = true;
 
     async function loadOrderList() {
-      // Notifications are generated inside the request scope so each fresh load
-      // starts from a clean slate and reports only the current synchronization.
+      // 알림은 조회 단위로 새로 만들고 초기화해서
+      // 이전 조회의 상태가 다음 동기화 결과에 섞이지 않게 한다.
       const pushNotification = (notification: Omit<NotificationItem, "id">) => {
         const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         setNotifications((current) => [...current, { id, ...notification }]);
@@ -69,9 +86,7 @@ export function OrderListPage({ onSelectOrder }: OrderListPageProps) {
 
       setIsLoading(true);
       setErrorMessage("");
-      setInfoMessage("orderApi 데이터를 기준으로 수주 목록을 동기화합니다.");
       setNotifications([]);
-      console.log("[orderApi] Loading order list view.");
 
       const [orderResult, clientResult, itemResult, unitPriceResult] = await Promise.allSettled([
         fetchOrderList(),
@@ -89,11 +104,11 @@ export function OrderListPage({ onSelectOrder }: OrderListPageProps) {
       const items = itemResult.status === "fulfilled" ? itemResult.value : [];
       const unitPrices = unitPriceResult.status === "fulfilled" ? unitPriceResult.value : [];
 
-      // The list page always renders flat rows, so the normalization helper
-      // expands nested 수주품목 arrays and calculates the derived columns.
-      const nextRows = orders.length > 0 ? buildOrderListRows({ clients, items, orders, unitPrices }) : mockOrders;
+      // 목록 화면은 평탄화된 행만 사용하므로
+      // 여기서 수주품목 배열을 펼치고 파생 컬럼까지 함께 계산한다.
+      const nextRows = orders.length > 0 ? buildOrderListRows({ clients, items, orders, unitPrices }) : [];
 
-      console.log("[orderApi] Enriched order list rows:", nextRows);
+      console.log("[orderApi] 수주 목록 조회 결과:", nextRows);
       setRows(nextRows);
       setLastSyncedAt(
         new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "short" }).format(new Date()),
@@ -107,7 +122,7 @@ export function OrderListPage({ onSelectOrder }: OrderListPageProps) {
       ].filter(Boolean);
 
       if (failedApis.length > 0) {
-        const message = `${failedApis.join(", ")} API 확인에 실패하여 가능한 데이터만 표시했습니다.`;
+        const message = `${failedApis.join(", ")} 데이터를 불러오는 데 실패하여 가능한 데이터만 표시했습니다.`;
         setErrorMessage(message);
         pushNotification({ title: "API 오류", message, variant: "error" });
       }
@@ -115,15 +130,7 @@ export function OrderListPage({ onSelectOrder }: OrderListPageProps) {
       if (orders.length === 0) {
         pushNotification({
           title: "데이터 없음",
-          message: "orderApi 응답이 비어 있어 예비 데이터를 표시합니다.",
-          variant: "warning",
-        });
-      }
-
-      if (nextRows.some((row) => row.unitPrice === null)) {
-        pushNotification({
-          title: "기준정보 누락",
-          message: "단가가 없는 품목이 있어 일부 금액이 비어 있을 수 있습니다.",
+          message: "데이터가 없습니다.",
           variant: "warning",
         });
       }
@@ -151,7 +158,7 @@ export function OrderListPage({ onSelectOrder }: OrderListPageProps) {
     setAppliedStartDate(startDate);
     setAppliedEndDate(endDate);
     setAppliedClientName(clientName.trim());
-    console.log("[orderApi] Applied list filter.", { clientName: clientName.trim(), endDate, startDate });
+    console.log("[orderApi] 수주 목록 검색 조건 적용:", { clientName: clientName.trim(), endDate, startDate });
   };
 
   const handleReset = () => {
@@ -174,6 +181,7 @@ export function OrderListPage({ onSelectOrder }: OrderListPageProps) {
         actions={
           <AppButton
             className="min-w-[92px]"
+            onClick={onCreateOrder}
             size="sm"
             variant="dark"
           >
@@ -243,7 +251,7 @@ export function OrderListPage({ onSelectOrder }: OrderListPageProps) {
       <div className="relative min-h-[520px] rounded-[12px] border border-[#d8dde6] bg-white">
         <LoadingOverlay
           isVisible={isLoading}
-          message="orderApi 목록을 불러오는 중입니다."
+          message="수주 목록을 불러오는 중입니다."
         />
         <DataTable
           columns={orderColumns}

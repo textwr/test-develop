@@ -33,7 +33,6 @@ export async function fetchClientList(): Promise<ClientInfo[]> {
   }
 
   const data = (await response.json()) as ClientInfo[];
-  console.log("[clientApi] Received client list:", data);
   return Array.isArray(data) ? data : [];
 }
 

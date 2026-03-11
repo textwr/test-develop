@@ -15,8 +15,8 @@ function hasText(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-// Numeric fields are stored as strings in several APIs, sometimes with units.
-// Normalizing them here keeps calculation logic predictable across pages.
+// 여러 API의 숫자 필드는 문자열이나 단위 포함 문자열로 내려오므로
+// 여기서 먼저 정규화해 두면 화면별 계산 로직을 일관되게 유지할 수 있다.
 export function parseNumber(value: unknown): number | null {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : null;
@@ -233,8 +233,22 @@ export function buildOrderListRows({
   unitPrices: UnitPriceStandardRecord[];
 }): OrderListRow[] {
   const source = { clients, items, unitPrices };
+  const uniqueOrders = orders.filter((order, orderIndex, currentOrders) => {
+    const orderNumber =
+      getText(order.수주번호) !== EMPTY_TEXT ? getText(order.수주번호) : buildFallbackOrderNumber(order, orderIndex);
 
-  return orders
+
+    return currentOrders.findIndex((candidate, candidateIndex) => {
+      const candidateOrderNumber =
+        getText(candidate.수주번호) !== EMPTY_TEXT
+          ? getText(candidate.수주번호)
+          : buildFallbackOrderNumber(candidate, candidateIndex);
+
+      return candidateOrderNumber === orderNumber;
+    }) === orderIndex;
+  });
+
+  return uniqueOrders
     .flatMap((order, orderIndex) => {
       const client = resolveClient(order, clients);
       const orderNumber = getText(order.수주번호) !== EMPTY_TEXT
@@ -253,6 +267,9 @@ export function buildOrderListRows({
         note: getText(order.비고),
       }));
     })
+    .filter((item, index, self) => 
+      index === self.findIndex((t) => t.orderNumber === item.orderNumber)
+    )
     .sort((left, right) => {
       const leftTime = Date.parse(left.orderDate);
       const rightTime = Date.parse(right.orderDate);
@@ -265,8 +282,8 @@ export function buildOrderListRows({
     });
 }
 
-// Detail views reuse the same enrichment and calculation path as the list page
-// so numbers stay consistent between summary and detail screens.
+// 상세 화면도 목록과 같은 보정/계산 경로를 재사용해야
+// 합계와 파생 값이 서로 다르게 보이지 않는다.
 export function buildOrderDetailView({
   order,
   clients,

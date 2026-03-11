@@ -50,7 +50,6 @@ export function OrderDetailPage({ onBack, orderId }: OrderDetailPageProps) {
   const [detail, setDetail] = useState<OrderDetailView>(createEmptyDetail(orderId));
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [infoMessage, setInfoMessage] = useState("");
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const dismissNotification = (id: string) => {
@@ -61,8 +60,8 @@ export function OrderDetailPage({ onBack, orderId }: OrderDetailPageProps) {
     let isMounted = true;
 
     async function loadOrderDetail() {
-      // Detail notifications are kept local to the selected order so stale
-      // warnings from a previously opened order do not bleed into the next one.
+      // 상세 알림은 현재 선택된 수주 기준으로만 유지해서
+      // 이전에 열었던 수주의 경고가 다음 상세 화면에 남지 않게 한다.
       const pushNotification = (notification: Omit<NotificationItem, "id">) => {
         const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         setNotifications((current) => [...current, { id, ...notification }]);
@@ -70,10 +69,9 @@ export function OrderDetailPage({ onBack, orderId }: OrderDetailPageProps) {
 
       setIsLoading(true);
       setErrorMessage("");
-      setInfoMessage("선택한 수주 ID로 orderApi 상세 정보를 조회합니다.");
       setNotifications([]);
       setDetail(createEmptyDetail(orderId));
-      console.log("[orderApi] Loading order detail view.", { orderId });
+      console.log("[orderApi] 수주 상세 조회 시작:", { orderId });
 
       const [orderResult, clientResult, itemResult, unitPriceResult] = await Promise.allSettled([
         fetchOrderById(orderId),
@@ -101,21 +99,13 @@ export function OrderDetailPage({ onBack, orderId }: OrderDetailPageProps) {
         unitPrices: unitPriceResult.status === "fulfilled" ? unitPriceResult.value : [],
       });
 
-      console.log("[orderApi] Detail view model:", nextDetail);
+      console.log("[orderApi] 수주 상세 조회 결과:", nextDetail);
       setDetail(nextDetail);
 
       if (nextDetail.items.length === 0) {
         pushNotification({
           title: "수주품목 없음",
           message: `선택한 수주 ID ${orderId}에 표시할 수주품목이 없습니다.`,
-          variant: "warning",
-        });
-      }
-
-      if (nextDetail.items.some((item) => item.unitPrice === null)) {
-        pushNotification({
-          title: "기준정보 누락",
-          message: "상세 품목 중 일부는 단가 기준정보가 없어 금액이 비어 있을 수 있습니다.",
           variant: "warning",
         });
       }
@@ -183,7 +173,6 @@ export function OrderDetailPage({ onBack, orderId }: OrderDetailPageProps) {
       />
 
       {errorMessage ? <StatusBanner variant="warning">{errorMessage}</StatusBanner> : null}
-      {infoMessage ? <StatusBanner variant="info">{infoMessage}</StatusBanner> : null}
 
       <section className="space-y-5">
         <h2 className="text-[20px] font-bold tracking-[-0.02em] text-[#0f172a]">수주정보</h2>
@@ -224,7 +213,7 @@ export function OrderDetailPage({ onBack, orderId }: OrderDetailPageProps) {
         <div className="relative min-h-[360px]">
           <LoadingOverlay
             isVisible={isLoading}
-            message="orderApi 상세 품목을 불러오는 중입니다."
+            message="상세 품목을 불러오는 중입니다."
           />
           <DataTable
             columns={detailColumns}

@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev": "node ./scripts/run-local-bin.mjs dev",
+    "build": "node ./scripts/run-local-bin.mjs build",
+    "lint": "node ./scripts/run-local-bin.mjs lint",
+    "preview": "node ./scripts/run-local-bin.mjs preview"
   },
   "dependencies": {
     "react": "^19.2.0",

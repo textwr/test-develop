@@ -35,7 +35,6 @@ export async function fetchUnitPriceStandardList(): Promise<UnitPriceStandardRec
   }
 
   const data = (await response.json()) as UnitPriceStandardRecord[];
-  console.log("[unitPriceStandardApi] Received unit price list:", data);
   return Array.isArray(data) ? data : [];
 }
 

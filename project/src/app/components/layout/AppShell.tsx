@@ -30,7 +30,7 @@ export function AppShell({
     <div
       className={cn(
         "grid min-h-screen bg-[#f3f4f6] transition-[grid-template-columns] duration-200 max-[1180px]:grid-cols-1",
-        isSidebarCollapsed ? "grid-cols-[76px_minmax(0,1fr)]" : "grid-cols-[215px_minmax(0,1fr)]",
+        isSidebarCollapsed ? "grid-cols-[84px_minmax(0,1fr)]" : "grid-cols-[248px_minmax(0,1fr)]",
       )}
     >
       <Sidebar

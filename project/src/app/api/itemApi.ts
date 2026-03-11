@@ -38,7 +38,6 @@ export async function fetchItemList(): Promise<ItemInfo[]> {
   }
 
   const data = (await response.json()) as ItemInfo[];
-  console.log("[itemApi] Received item list:", data);
   return Array.isArray(data) ? data : [];
 }
 

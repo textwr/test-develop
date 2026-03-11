@@ -24,22 +24,22 @@ export function Sidebar({
   onToggleSidebar,
 }: SidebarProps) {
   return (
-    <aside className="flex min-h-screen flex-col bg-[linear-gradient(180deg,#5d71df_0%,#5669d8_100%)] text-white max-[1180px]:min-h-0">
+    <aside className="flex min-h-screen flex-col bg-[linear-gradient(180deg,#5d71df_0%,#5669d8_100%)] text-white shadow-[inset_-1px_0_0_rgba(255,255,255,0.12)] max-[1180px]:min-h-0">
       <div
         className={cn(
-          "grid items-center border-b border-white/12 px-3 py-3",
-          isCollapsed ? "justify-items-center gap-3" : "grid-cols-[42px_minmax(0,1fr)_28px] gap-2.5",
+          "grid items-center border-b border-white/12 px-3.5 py-4",
+          isCollapsed ? "justify-items-center gap-3.5" : "grid-cols-[44px_minmax(0,1fr)_28px] gap-3",
         )}
       >
         <img
           alt="상우하이텍 로고"
-          className="h-[42px] w-[42px] rounded-[12px] bg-white p-1.5"
+          className="h-[44px] w-[44px] rounded-[12px] bg-white p-1.5"
           src={logoImage}
         />
         {!isCollapsed ? (
           <div>
-            <p className="text-[15px] font-bold leading-tight">상우하이텍</p>
-            <p className="mt-0.5 text-[11px] text-white/75">Smart Factory</p>
+            <p className="text-[15px] font-bold leading-tight tracking-[-0.01em]">상우하이텍</p>
+            <p className="mt-0.5 text-[12px] text-white/75">Smart Factory</p>
           </div>
         ) : null}
         <button
@@ -65,27 +65,27 @@ export function Sidebar({
         </button>
       </div>
 
-      <nav className="grid gap-1.5 px-2 py-3">
+      <nav className="grid gap-2 px-2.5 py-4">
         {navigationGroups.map((group) => {
           const isExpanded = expandedGroups.includes(group.label);
           const isActiveGroup = group.label === activeGroup;
 
           return (
             <div
-              className="grid gap-1"
+              className="grid gap-1.5"
               key={group.label}
             >
               <button
                 className={cn(
-                  "flex min-h-[40px] items-center rounded-[10px] px-3 text-left transition hover:bg-white/10",
+                  "flex min-h-[44px] items-center rounded-[12px] px-3.5 text-left transition hover:bg-white/10",
                   isCollapsed ? "justify-center px-0" : "justify-between",
-                  isActiveGroup && "bg-white/8",
+                  isActiveGroup && "bg-white/10",
                 )}
                 onClick={() => onToggleGroup(group)}
                 title={group.label}
                 type="button"
               >
-                <span className={cn("inline-flex items-center gap-3 text-[14px] font-semibold", isCollapsed && "justify-center")}>
+                <span className={cn("inline-flex items-center gap-3.5 text-[14px] font-semibold", isCollapsed && "justify-center")}>
                   <SidebarGroupIcon icon={group.icon} />
                   {!isCollapsed ? <span>{group.label}</span> : null}
                 </span>
@@ -97,11 +97,11 @@ export function Sidebar({
               </button>
 
               {isExpanded && !isCollapsed ? (
-                <div className="grid gap-1 pl-6">
+                <div className="grid gap-1.5 pl-8">
                   {group.items.map((subCategory) => (
                     <button
                       className={cn(
-                        "min-h-[30px] rounded-[10px] px-4 text-left text-[13px] text-white/85 transition hover:bg-white/10 hover:text-white",
+                        "min-h-[34px] rounded-[12px] px-4 text-left text-[13px] text-white/85 transition hover:bg-white/10 hover:text-white",
                         subCategory === activeSubCategory && "bg-[#4f63d2] font-semibold text-white",
                       )}
                       key={subCategory}
@@ -120,8 +120,8 @@ export function Sidebar({
 
       <div
         className={cn(
-          "mt-auto m-3 flex items-center gap-3 rounded-[12px] border border-white/20 bg-white/4 p-3",
-          isCollapsed && "justify-center p-2",
+          "mt-auto mx-3.5 mb-3.5 flex items-center gap-3 rounded-[14px] border border-white/20 bg-white/4 p-3.5",
+          isCollapsed && "justify-center p-2.5",
         )}
       >
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#5c70df]">

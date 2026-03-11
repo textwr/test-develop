@@ -14,6 +14,8 @@ export type OrderApiLineItem = {
   수주량m2?: string;
 };
 
+export type OrderCreateLineItem = OrderApiLineItem;
+
 export type OrderApiRecord = {
   id?: string;
   거래처번호?: string;
@@ -26,6 +28,17 @@ export type OrderApiRecord = {
   비고?: string;
   등록일시?: string;
   수정일시?: string;
+};
+
+export type OrderCreatePayload = {
+  거래처번호: string;
+  거래처명: string;
+  수주번호: string;
+  수주일자: string;
+  수주품목: OrderCreateLineItem[];
+  납품요청일?: string;
+  납품장소?: string;
+  비고?: string;
 };
 
 export type OrderItemView = {
@@ -64,4 +77,8 @@ export type OrderDetailView = {
   deliveryPlace: string;
   note: string;
   items: OrderItemView[];
+};
+
+export type OrderRegisterItem = OrderItemView & {
+  isSelected: boolean;
 };
