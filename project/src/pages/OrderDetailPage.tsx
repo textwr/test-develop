@@ -28,8 +28,11 @@ const detailColumns: DataColumn<OrderItemView>[] = [
 ];
 
 type OrderDetailPageProps = {
+  flashNotification?: Omit<NotificationItem, "id"> | null;
   orderId: string;
   onBack: () => void;
+  onEdit: () => void;
+  onFlashNotificationShown?: () => void;
 };
 
 function createEmptyDetail(orderId: string): OrderDetailView {
@@ -46,7 +49,13 @@ function createEmptyDetail(orderId: string): OrderDetailView {
   };
 }
 
-export function OrderDetailPage({ onBack, orderId }: OrderDetailPageProps) {
+export function OrderDetailPage({
+  flashNotification,
+  onBack,
+  onEdit,
+  onFlashNotificationShown,
+  orderId,
+}: OrderDetailPageProps) {
   const [detail, setDetail] = useState<OrderDetailView>(createEmptyDetail(orderId));
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -55,6 +64,16 @@ export function OrderDetailPage({ onBack, orderId }: OrderDetailPageProps) {
   const dismissNotification = (id: string) => {
     setNotifications((current) => current.filter((notification) => notification.id !== id));
   };
+
+  useEffect(() => {
+    if (!flashNotification) {
+      return;
+    }
+
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setNotifications((current) => [...current, { id, ...flashNotification }]);
+    onFlashNotificationShown?.();
+  }, [flashNotification, onFlashNotificationShown]);
 
   useEffect(() => {
     let isMounted = true;
@@ -130,18 +149,6 @@ export function OrderDetailPage({ onBack, orderId }: OrderDetailPageProps) {
 
   const displayNote = useMemo(() => detail.note, [detail.note]);
 
-  const handleEdit = () => {
-    setNotifications((current) => [
-      ...current,
-      {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        message: "수정 화면은 프로토타입 더미 기능입니다.",
-        title: "더미 기능",
-        variant: "info",
-      },
-    ]);
-  };
-
   return (
     <section className="space-y-6">
       <NotificationCenter
@@ -153,7 +160,7 @@ export function OrderDetailPage({ onBack, orderId }: OrderDetailPageProps) {
           <>
             <AppButton
               className="min-w-[80px]"
-              onClick={handleEdit}
+              onClick={onEdit}
               size="sm"
               variant="dark"
             >

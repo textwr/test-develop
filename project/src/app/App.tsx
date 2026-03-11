@@ -6,6 +6,7 @@ import backgroundImage from "@/assets/background.jpg";
 import logoImage from "@/assets/logo.png";
 import { LoginPage } from "@/pages/LoginPage";
 import { OrderDetailPage } from "@/pages/OrderDetailPage";
+import { OrderEditPage } from "@/pages/OrderEditPage";
 import { OrderListPage } from "@/pages/OrderListPage";
 import { OrderRegisterPage } from "@/pages/OrderRegisterPage";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
@@ -20,6 +21,7 @@ type CurrentView =
   | { type: "order-list" }
   | { type: "order-register" }
   | { orderId: string; type: "order-detail" }
+  | { orderId: string; type: "order-edit" }
   | { type: "placeholder" };
 
 const defaultGroup = navigationGroups[0];
@@ -33,6 +35,7 @@ function App() {
   const [activeSubCategory, setActiveSubCategory] = useState<SubCategory>(defaultSubCategory);
   const [currentView, setCurrentView] = useState<CurrentView>({ type: "order-list" });
   const [listFlashNotification, setListFlashNotification] = useState<Omit<NotificationItem, "id"> | null>(null);
+  const [detailFlashNotification, setDetailFlashNotification] = useState<Omit<NotificationItem, "id"> | null>(null);
 
   // Every view transition uses the same guard so the console log stays reliable
   // for monitoring and the prototype keeps a single navigation source of truth.
@@ -133,9 +136,32 @@ function App() {
     setCurrentView({ type: "order-list" });
   };
 
+  const handleOpenOrderEdit = (orderId: string) => {
+    if (!confirmLoginForNavigation(`수주수정:${orderId}`)) {
+      return;
+    }
+
+    setActiveGroup("영업관리");
+    setActiveSubCategory("수주정보");
+    setCurrentView({ orderId, type: "order-edit" });
+  };
+
+  const handleBackToOrderDetail = (orderId: string) => {
+    if (!confirmLoginForNavigation(`수주상세:${orderId}`)) {
+      return;
+    }
+
+    setCurrentView({ orderId, type: "order-detail" });
+  };
+
   const handleOrderRegisterComplete = (notification: Omit<NotificationItem, "id">) => {
     setListFlashNotification(notification);
     setCurrentView({ type: "order-list" });
+  };
+
+  const handleOrderEditComplete = (orderId: string, notification: Omit<NotificationItem, "id">) => {
+    setDetailFlashNotification(notification);
+    setCurrentView({ orderId, type: "order-detail" });
   };
 
   if (!isLoggedIn) {
@@ -175,7 +201,17 @@ function App() {
       ) : null}
       {currentView.type === "order-detail" ? (
         <OrderDetailPage
+          flashNotification={detailFlashNotification}
           onBack={handleBackToList}
+          onEdit={() => handleOpenOrderEdit(currentView.orderId)}
+          onFlashNotificationShown={() => setDetailFlashNotification(null)}
+          orderId={currentView.orderId}
+        />
+      ) : null}
+      {currentView.type === "order-edit" ? (
+        <OrderEditPage
+          onBack={() => handleBackToOrderDetail(currentView.orderId)}
+          onComplete={(notification) => handleOrderEditComplete(currentView.orderId, notification)}
           orderId={currentView.orderId}
         />
       ) : null}
