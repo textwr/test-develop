@@ -1,7 +1,8 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import type { MainCategory, NavigationGroup, SubCategory } from "@/app/config/navigation";
 import { navigationGroups } from "@/app/config/navigation";
 import { AppShell } from "@/app/components/layout/AppShell";
+import type { NotificationItem } from "@/app/components/common/NotificationCenter";
 import backgroundImage from "@/assets/background.jpg";
 import logoImage from "@/assets/logo.png";
 import { LoginPage } from "@/pages/LoginPage";
@@ -10,7 +11,10 @@ import { OrderEditPage } from "@/pages/OrderEditPage";
 import { OrderListPage } from "@/pages/OrderListPage";
 import { OrderRegisterPage } from "@/pages/OrderRegisterPage";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
-import type { NotificationItem } from "@/app/components/common/NotificationCenter";
+import { PurchaseOrderDetailPage } from "@/pages/PurchaseOrderDetailPage";
+import { PurchaseOrderEditPage } from "@/pages/PurchaseOrderEditPage";
+import { PurchaseOrderListPage } from "@/pages/PurchaseOrderListPage";
+import { PurchaseOrderRegisterPage } from "@/pages/PurchaseOrderRegisterPage";
 
 type LoginCredentials = {
   userId: string;
@@ -22,11 +26,17 @@ type CurrentView =
   | { type: "order-register" }
   | { orderId: string; type: "order-detail" }
   | { orderId: string; type: "order-edit" }
+  | { type: "purchase-order-list" }
+  | { type: "purchase-order-register" }
+  | { orderNumber: string; type: "purchase-order-detail" }
+  | { orderNumber: string; type: "purchase-order-edit" }
   | { type: "placeholder" };
 
 const defaultGroup = navigationGroups[0];
 const defaultSubCategory = defaultGroup.items[0];
 
+// App은 사이드바 선택과 페이지 전환을 한 곳에서 관리해
+// 수주/발주 화면이 같은 네비게이션 경험을 유지하도록 만든다.
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -36,9 +46,11 @@ function App() {
   const [currentView, setCurrentView] = useState<CurrentView>({ type: "order-list" });
   const [listFlashNotification, setListFlashNotification] = useState<Omit<NotificationItem, "id"> | null>(null);
   const [detailFlashNotification, setDetailFlashNotification] = useState<Omit<NotificationItem, "id"> | null>(null);
+  const [purchaseListFlashNotification, setPurchaseListFlashNotification] = useState<Omit<NotificationItem, "id"> | null>(null);
+  const [purchaseDetailFlashNotification, setPurchaseDetailFlashNotification] = useState<Omit<NotificationItem, "id"> | null>(null);
 
-  // Every view transition uses the same guard so the console log stays reliable
-  // for monitoring and the prototype keeps a single navigation source of truth.
+  // 모든 화면 전환은 같은 인증 확인 흐름을 거치게 해
+  // 콘솔 추적과 실제 이동 기준이 서로 다르지 않도록 유지한다.
   const confirmLoginForNavigation = (destination: string) => {
     const confirmed = isLoggedIn;
     console.log("[auth-check] Navigation requested.", {
@@ -73,9 +85,7 @@ function App() {
 
     setExpandedGroups((current) => {
       const isExpanded = current.includes(group.label);
-      const nextGroups = isExpanded
-        ? current.filter((label) => label !== group.label)
-        : [...current, group.label];
+      const nextGroups = isExpanded ? current.filter((label) => label !== group.label) : [...current, group.label];
 
       console.log("[navigation] Sidebar group toggled.", {
         expanded: !isExpanded,
@@ -98,6 +108,8 @@ function App() {
     });
   };
 
+  // 서브카테고리 이름에 따라 실제 화면 타입을 결정해
+  // 수주/발주 메뉴가 같은 앱 셸 안에서 자연스럽게 전환되도록 한다.
   const handleSelectSubCategory = (group: NavigationGroup, subCategory: SubCategory) => {
     if (!confirmLoginForNavigation(subCategory)) {
       return;
@@ -105,7 +117,18 @@ function App() {
 
     setActiveGroup(group.label);
     setActiveSubCategory(subCategory);
-    setCurrentView(subCategory === "수주정보" ? { type: "order-list" } : { type: "placeholder" });
+
+    if (subCategory === "수주정보") {
+      setCurrentView({ type: "order-list" });
+      return;
+    }
+
+    if (subCategory === "발주정보") {
+      setCurrentView({ type: "purchase-order-list" });
+      return;
+    }
+
+    setCurrentView({ type: "placeholder" });
   };
 
   const handleSelectOrder = (orderId: string) => {
@@ -128,7 +151,7 @@ function App() {
     setCurrentView({ type: "order-register" });
   };
 
-  const handleBackToList = () => {
+  const handleBackToOrderList = () => {
     if (!confirmLoginForNavigation("수주정보")) {
       return;
     }
@@ -164,14 +187,64 @@ function App() {
     setCurrentView({ orderId, type: "order-detail" });
   };
 
+  const handleSelectPurchaseOrder = (selectedOrderNumber: string) => {
+    if (!confirmLoginForNavigation(`발주상세:${selectedOrderNumber}`)) {
+      return;
+    }
+
+    setActiveGroup("자재관리");
+    setActiveSubCategory("발주정보");
+    setCurrentView({ orderNumber: selectedOrderNumber, type: "purchase-order-detail" });
+  };
+
+  const handleOpenPurchaseOrderRegister = () => {
+    if (!confirmLoginForNavigation("발주등록")) {
+      return;
+    }
+
+    setActiveGroup("자재관리");
+    setActiveSubCategory("발주정보");
+    setCurrentView({ type: "purchase-order-register" });
+  };
+
+  const handleBackToPurchaseOrderList = () => {
+    if (!confirmLoginForNavigation("발주정보")) {
+      return;
+    }
+
+    setCurrentView({ type: "purchase-order-list" });
+  };
+
+  const handleOpenPurchaseOrderEdit = (selectedOrderNumber: string) => {
+    if (!confirmLoginForNavigation(`발주수정:${selectedOrderNumber}`)) {
+      return;
+    }
+
+    setActiveGroup("자재관리");
+    setActiveSubCategory("발주정보");
+    setCurrentView({ orderNumber: selectedOrderNumber, type: "purchase-order-edit" });
+  };
+
+  const handleBackToPurchaseOrderDetail = (selectedOrderNumber: string) => {
+    if (!confirmLoginForNavigation(`발주상세:${selectedOrderNumber}`)) {
+      return;
+    }
+
+    setCurrentView({ orderNumber: selectedOrderNumber, type: "purchase-order-detail" });
+  };
+
+  const handlePurchaseOrderRegisterComplete = (notification: Omit<NotificationItem, "id">) => {
+    setPurchaseListFlashNotification(notification);
+    setCurrentView({ type: "purchase-order-list" });
+  };
+
+  const handlePurchaseOrderEditComplete = (selectedOrderNumber: string, notification: Omit<NotificationItem, "id">) => {
+    setPurchaseDetailFlashNotification(notification);
+    setCurrentView({ orderNumber: selectedOrderNumber, type: "purchase-order-detail" });
+  };
+
   if (!isLoggedIn) {
-    return (
-      <LoginPage
-        backgroundImage={backgroundImage}
-        logoImage={logoImage}
-        onLogin={handleLogin}
-      />
-    );
+    return <LoginPage backgroundImage={backgroundImage} logoImage={logoImage} onLogin={handleLogin} />;
   }
 
   return (
@@ -194,15 +267,12 @@ function App() {
         />
       ) : null}
       {currentView.type === "order-register" ? (
-        <OrderRegisterPage
-          onBack={handleBackToList}
-          onComplete={handleOrderRegisterComplete}
-        />
+        <OrderRegisterPage onBack={handleBackToOrderList} onComplete={handleOrderRegisterComplete} />
       ) : null}
       {currentView.type === "order-detail" ? (
         <OrderDetailPage
           flashNotification={detailFlashNotification}
-          onBack={handleBackToList}
+          onBack={handleBackToOrderList}
           onEdit={() => handleOpenOrderEdit(currentView.orderId)}
           onFlashNotificationShown={() => setDetailFlashNotification(null)}
           orderId={currentView.orderId}
@@ -215,11 +285,38 @@ function App() {
           orderId={currentView.orderId}
         />
       ) : null}
-      {currentView.type === "placeholder" ? (
-        <PlaceholderPage
-          groupLabel={activeGroup}
-          title={activeSubCategory}
+      {currentView.type === "purchase-order-list" ? (
+        <PurchaseOrderListPage
+          flashNotification={purchaseListFlashNotification}
+          onCreateOrder={handleOpenPurchaseOrderRegister}
+          onFlashNotificationShown={() => setPurchaseListFlashNotification(null)}
+          onSelectOrder={handleSelectPurchaseOrder}
         />
+      ) : null}
+      {currentView.type === "purchase-order-register" ? (
+        <PurchaseOrderRegisterPage
+          onBack={handleBackToPurchaseOrderList}
+          onComplete={handlePurchaseOrderRegisterComplete}
+        />
+      ) : null}
+      {currentView.type === "purchase-order-detail" ? (
+        <PurchaseOrderDetailPage
+          flashNotification={purchaseDetailFlashNotification}
+          onBack={handleBackToPurchaseOrderList}
+          onEdit={() => handleOpenPurchaseOrderEdit(currentView.orderNumber)}
+          onFlashNotificationShown={() => setPurchaseDetailFlashNotification(null)}
+          orderNumber={currentView.orderNumber}
+        />
+      ) : null}
+      {currentView.type === "purchase-order-edit" ? (
+        <PurchaseOrderEditPage
+          onBack={() => handleBackToPurchaseOrderDetail(currentView.orderNumber)}
+          onComplete={(notification) => handlePurchaseOrderEditComplete(currentView.orderNumber, notification)}
+          orderNumber={currentView.orderNumber}
+        />
+      ) : null}
+      {currentView.type === "placeholder" ? (
+        <PlaceholderPage groupLabel={activeGroup} title={activeSubCategory} />
       ) : null}
     </AppShell>
   );
