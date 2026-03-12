@@ -9,7 +9,7 @@ export const navigationGroups = [
   {
     label: "자재관리",
     icon: "material",
-    items: ["발주정보"],
+    items: ["발주정보", "가입고정보", "입고현황", "자재재고현황", "자재불량현황"],
   },
   {
     label: "생산관리",
