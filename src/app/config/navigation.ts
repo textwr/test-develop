@@ -14,7 +14,7 @@ export const navigationGroups = [
   {
     label: "생산관리",
     icon: "production",
-    items: ["생산정보"],
+    items: ["생산소요량산출", "생산계획", "작업지시", "작업실적현황", "원소재투입분석", "원소재투입현황", "제품불량현황", "비가동현황", "제품중량현황"],
   },
   {
     label: "품질관리",
